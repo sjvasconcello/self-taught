@@ -21,7 +21,7 @@
 
 {% for post in similar_posts %}
 <p>
-    <a href="{{ post.get_absolute.url }}">{{post.title}}</a>
+    <a href="{{ post.get_absolute_url }}">{{post.title}}</a>
 </p>
 
 {% empty %}
