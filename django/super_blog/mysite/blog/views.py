@@ -1,5 +1,4 @@
-from django.contrib.postgres.search import SearchVector
-from django.shortcuts import render, get_object_or_404
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from django.core.mail import send_mail
@@ -98,9 +97,13 @@ def post_search(request):
     if "query" in request.GET:
         form = SearchForm(request.GET)
         if form.is_valid():
+            search_vector = SearchVector("title", weight="A") + SearchVector("body", weight="B")
+            search_query = SearchQuery(query)
             query = form.cleaned_data["query"]
             results = Post.published.annotate(
-                search=SearchVector("title", "body"),).filter(search=query)
+                search=search_vector,
+                rank=SearchVector(search_vector, search_query),)
+            .filter(rank_gte=0.3).order_by("-rank")
     return render(request, "blog/post/search.html", {"form": form,
                                                      "query": query,
                                                      "results": results})
